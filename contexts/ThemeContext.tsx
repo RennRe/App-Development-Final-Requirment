@@ -1,42 +1,68 @@
 /**
  * ThemeContext
- * Lets the user manually toggle between light and dark mode.
- * Wraps the whole app so every screen can read / change the theme.
+ * Manages two separate settings:
+ *   1. colorMode — "system" | "light" | "dark"
+ *   2. themeName — which color palette to use ("Default" | "Dynamic" | "GreenApple")
+ *
+ * Every screen can read `theme` (the full color object) and the setters.
  */
 
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useColorScheme as useSystemColorScheme } from 'react-native';
-import { Colors } from '@/constants/theme';
+import {
+  THEME_PALETTES,
+  buildColors,
+  type ThemeName,
+} from '@/constants/theme';
 
-// What the context provides
+// The three brightness modes (matches the image's toggle)
+export type ColorMode = 'system' | 'light' | 'dark';
+
+// Everything the context exposes
 type ThemeContextType = {
-  isDark: boolean;                          // true = dark mode
-  theme: typeof Colors.light;              // current color palette
-  toggleTheme: () => void;                 // flip between light/dark
+  colorMode: ColorMode;
+  setColorMode: (mode: ColorMode) => void;
+  themeName: ThemeName;
+  setThemeName: (name: ThemeName) => void;
+  isDark: boolean;
+  theme: ReturnType<typeof buildColors>;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-// Provider component — wrap your app with this
+// Provider — wrap your entire app with this
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Start with whatever the system preference is
-  const systemScheme = useSystemColorScheme();
-  const [isDark, setIsDark] = useState(systemScheme === 'dark');
+  const systemScheme = useSystemColorScheme(); // 'light' | 'dark' | null
 
-  // Pick the right color palette based on isDark
-  const theme = isDark ? Colors.dark : Colors.light;
+  // Which brightness mode the user has selected
+  const [colorMode, setColorMode] = useState<ColorMode>('system');
 
-  // Toggle function
-  const toggleTheme = () => setIsDark((prev) => !prev);
+  // Which color palette the user has selected
+  const [themeName, setThemeName] = useState<ThemeName>('Default');
+
+  // Calculate whether we're actually in dark mode right now
+  const isDark =
+    colorMode === 'dark' ||
+    (colorMode === 'system' && systemScheme === 'dark');
+
+  // Build the full color object from the selected palette + dark flag
+  const theme = buildColors(THEME_PALETTES[themeName], isDark);
 
   return (
-    <ThemeContext.Provider value={{ isDark, theme, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{ colorMode, setColorMode, themeName, setThemeName, isDark, theme }}
+    >
       {children}
     </ThemeContext.Provider>
   );
 }
 
-// Custom hook — use this in any component to access theme
+// Custom hook — call this in any component to access the theme
 export function useAppTheme() {
   const context = useContext(ThemeContext);
   if (!context) {

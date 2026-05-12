@@ -1,7 +1,7 @@
 /**
  * Sign-In Screen
- * Matches the Tara! mockup: Google sign-in + OTP via mobile number.
- * Has light/dark mode support.
+ * Matches the Tara! branding: Google sign-in + OTP via mobile number.
+ * Uses the actual Logo.png asset instead of emojis.
  */
 
 import React, { useState } from 'react';
@@ -14,6 +14,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppTheme } from '@/contexts/ThemeContext';
@@ -22,7 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function SignInScreen() {
   const { signIn } = useAuth();
-  const { theme, isDark, toggleTheme } = useAppTheme();
+  const { theme, isDark } = useAppTheme();
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showOTP, setShowOTP] = useState(false);
@@ -54,37 +55,21 @@ export default function SignInScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Theme toggle in corner */}
-        <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
-          <Ionicons
-            name={isDark ? 'sunny' : 'moon'}
-            size={24}
-            color={theme.text}
-          />
-        </TouchableOpacity>
-
-        {/* Logo area */}
+        {/* Logo + App Name */}
         <View style={styles.logoArea}>
-          <Text style={[styles.logoIcon, { color: Brand.gold }]}>🚐</Text>
-          <Text style={[styles.logoText, { color: theme.text }]}>
-            TARA!
+          <Image
+            source={require('@/assets/images/Logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+          <Text style={[styles.logoText, { color: Brand.teal }]}>
+            Tara!
           </Text>
-          <View style={styles.sunBurst}>
-            <Text style={{ fontSize: 24 }}>☀️</Text>
-          </View>
         </View>
 
         <Text style={[styles.tagline, { color: theme.textSecondary }]}>
           Plan together, pay together,{'\n'}no hiya involved.
         </Text>
-
-        {/* Illustration placeholder */}
-        <View style={[styles.illustrationBox, { backgroundColor: isDark ? '#2D333B' : '#F5ECD7' }]}>
-          <Text style={styles.illustrationEmoji}>🏖️👨‍👩‍👧‍👦🍖🎉</Text>
-          <Text style={[styles.illustrationLabel, { color: theme.textSecondary }]}>
-            Puerto Galera
-          </Text>
-        </View>
 
         {/* Sign-in card */}
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
@@ -121,7 +106,7 @@ export default function SignInScreen() {
           </Text>
 
           <View style={[styles.phoneRow, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
-            <Text style={styles.flag}>🇵🇭</Text>
+            <Ionicons name="flag-outline" size={18} color={Brand.teal} />
             <Text style={[styles.countryCode, { color: theme.text }]}>+63</Text>
             <View style={[styles.phoneDivider, { backgroundColor: theme.divider }]} />
             <TextInput
@@ -138,7 +123,7 @@ export default function SignInScreen() {
           {/* Send OTP button */}
           {!showOTP && (
             <TouchableOpacity
-              style={[styles.otpButton, { backgroundColor: Brand.gold }]}
+              style={[styles.otpButton, { backgroundColor: Brand.teal }]}
               onPress={handleSendOTP}
             >
               <Text style={styles.otpButtonText}>Send OTP Code</Text>
@@ -157,7 +142,7 @@ export default function SignInScreen() {
                   backgroundColor: theme.inputBg,
                   borderColor: theme.inputBorder,
                 }]}
-                placeholder="• • • • • •"
+                placeholder="------"
                 placeholderTextColor={theme.textSecondary}
                 keyboardType="number-pad"
                 value={otpCode}
@@ -166,7 +151,7 @@ export default function SignInScreen() {
                 textAlign="center"
               />
               <TouchableOpacity
-                style={[styles.otpButton, { backgroundColor: Brand.gold }]}
+                style={[styles.otpButton, { backgroundColor: Brand.teal }]}
                 onPress={handleVerifyOTP}
               >
                 <Text style={styles.otpButtonText}>Verify & Sign In</Text>
@@ -184,16 +169,16 @@ export default function SignInScreen() {
               New to Tara?{' '}
             </Text>
             <TouchableOpacity>
-              <Text style={[styles.linkAction, { color: Brand.gold }]}>
-                [Sign Up]
+              <Text style={[styles.linkAction, { color: Brand.teal }]}>
+                Sign Up
               </Text>
             </TouchableOpacity>
             <Text style={[styles.linkText, { color: theme.textSecondary }]}>
               {' '}|{' '}
             </Text>
             <TouchableOpacity>
-              <Text style={[styles.linkAction, { color: Brand.gold }]}>
-                Help [?]
+              <Text style={[styles.linkAction, { color: Brand.teal }]}>
+                Help
               </Text>
             </TouchableOpacity>
           </View>
@@ -210,59 +195,32 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: Spacing.xl,
-    paddingTop: 60,
+    paddingTop: 80,
     paddingBottom: 40,
     alignItems: 'center',
-  },
-  themeToggle: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    padding: 8,
-    zIndex: 10,
   },
 
   // Logo
   logoArea: {
-    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  logoIcon: {
-    fontSize: 32,
-    marginRight: Spacing.sm,
+  logoImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    marginBottom: Spacing.sm,
   },
   logoText: {
     fontSize: 40,
     fontWeight: '900',
     letterSpacing: 2,
   },
-  sunBurst: {
-    marginLeft: 4,
-    marginTop: -16,
-  },
   tagline: {
     fontSize: 15,
     textAlign: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xxl,
     lineHeight: 22,
-  },
-
-  // Illustration
-  illustrationBox: {
-    width: '100%',
-    borderRadius: Radius.lg,
-    padding: Spacing.xxl,
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  illustrationEmoji: {
-    fontSize: 48,
-    marginBottom: Spacing.sm,
-  },
-  illustrationLabel: {
-    fontSize: 13,
-    fontStyle: 'italic',
   },
 
   // Card
@@ -340,10 +298,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     height: 50,
     marginBottom: Spacing.lg,
-  },
-  flag: {
-    fontSize: 20,
-    marginRight: 6,
+    gap: 6,
   },
   countryCode: {
     fontSize: 15,
@@ -352,7 +307,7 @@ const styles = StyleSheet.create({
   phoneDivider: {
     width: 1,
     height: 24,
-    marginHorizontal: Spacing.md,
+    marginHorizontal: Spacing.sm,
   },
   phoneInput: {
     flex: 1,
