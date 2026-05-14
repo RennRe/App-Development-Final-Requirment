@@ -1,6 +1,8 @@
 /**
  * Profile Screen
- * Shows user info, theme toggle, and sign-out.
+ * Shows user info and stats only.
+ * All settings have been moved to the Settings screen.
+ * Tap the gear icon (top right) to open Settings.
  */
 
 import React from 'react';
@@ -10,121 +12,151 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Switch,
+  Image,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { Brand, Spacing, Radius } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AnimatedScreen from '@/components/AnimatedScreen';
 
 export default function ProfileScreen() {
-  const { userName, signOut } = useAuth();
-  const { theme, isDark, toggleTheme } = useAppTheme();
+  const { userName } = useAuth();
+  const { theme, isDark } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
 
-  // Placeholder stats
   const stats = [
     { label: 'Events Joined', value: '12' },
     { label: 'Total Spent', value: '₱15,400' },
     { label: 'Resibo Uploaded', value: '23' },
   ];
 
+  // Quick-access links shown on profile (read-only info rows)
+  const quickLinks = [
+    { icon: 'calendar-outline' as const, label: 'My Events', color: Brand.teal },
+    { icon: 'wallet-outline' as const, label: 'Payment History', color: Brand.teal },
+    { icon: 'people-outline' as const, label: 'Friends / Grupo', color: Brand.teal },
+  ];
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: isDark ? '#161B22' : Brand.cream }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Profile</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Avatar + name */}
-        <View style={styles.profileSection}>
-          <View style={[styles.bigAvatar, { backgroundColor: Brand.gold }]}>
-            <Text style={styles.bigAvatarText}>{userName[0]}</Text>
-          </View>
-          <Text style={[styles.profileName, { color: theme.text }]}>{userName}</Text>
-          <Text style={[styles.profilePhone, { color: theme.textSecondary }]}>+63 912 345 6789</Text>
+    <AnimatedScreen>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {/* Header — distinct in both light and dark mode */}
+        <View style={[
+          styles.header,
+          {
+            backgroundColor: isDark ? theme.header : '#FFFFFF',
+            paddingTop: insets.top + 12,
+          },
+        ]}>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Profile</Text>
         </View>
 
-        {/* Stats row */}
-        <View style={[styles.statsRow, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
-          {stats.map((stat, i) => (
-            <View key={i} style={[styles.statItem, i > 0 && { borderLeftWidth: 1, borderLeftColor: theme.divider }]}>
-              <Text style={[styles.statValue, { color: Brand.gold }]}>{stat.value}</Text>
-              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{stat.label}</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Avatar + name */}
+          <View style={styles.profileSection}>
+            <View style={[styles.bigAvatar, { backgroundColor: Brand.teal }]}>
+              <Text style={styles.bigAvatarText}>{userName[0]}</Text>
             </View>
-          ))}
-        </View>
-
-        {/* Settings */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>SETTINGS</Text>
-
-        {/* Dark mode toggle */}
-        <View style={[styles.settingCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
-          <View style={styles.settingLeft}>
-            <Ionicons name={isDark ? 'moon' : 'sunny'} size={22} color={Brand.gold} />
-            <Text style={[styles.settingText, { color: theme.text }]}>Dark Mode</Text>
+            <Text style={[styles.profileName, { color: theme.text }]}>{userName}</Text>
+            <Text style={[styles.profilePhone, { color: theme.textSecondary }]}>
+              +63 912 345 6789
+            </Text>
           </View>
-          <Switch
-            value={isDark}
-            onValueChange={toggleTheme}
-            trackColor={{ false: '#D0D0D0', true: Brand.goldDark }}
-            thumbColor={isDark ? Brand.gold : '#fff'}
-          />
-        </View>
 
-        {/* Other settings */}
-        {[
-          { icon: 'notifications-outline' as const, label: 'Notifications' },
-          { icon: 'language-outline' as const, label: 'Language / Wika' },
-          { icon: 'shield-checkmark-outline' as const, label: 'Privacy' },
-          { icon: 'help-circle-outline' as const, label: 'Help & Support' },
-        ].map((item, i) => (
+          {/* Stats row */}
+          <View style={[styles.statsRow, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
+            {stats.map((stat, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.statItem,
+                  i > 0 && { borderLeftWidth: 1, borderLeftColor: theme.divider },
+                ]}
+              >
+                <Text style={[styles.statValue, { color: theme.tint }]}>{stat.value}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{stat.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Quick links */}
+          <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>QUICK ACCESS</Text>
+          {quickLinks.map((item, i) => (
+            <TouchableOpacity
+              key={i}
+              style={[styles.linkCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}
+              activeOpacity={0.7}
+            >
+              <View style={styles.linkLeft}>
+                <View style={[styles.linkIconWrap, { backgroundColor: theme.tint + '22' }]}>
+                  <Ionicons name={item.icon} size={18} color={theme.tint} />
+                </View>
+                <Text style={[styles.linkText, { color: theme.text }]}>{item.label}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+            </TouchableOpacity>
+          ))}
+
+          {/* Settings shortcut */}
+          <Text style={[styles.sectionLabel, { color: theme.textSecondary, marginTop: Spacing.xl }]}>
+            APP
+          </Text>
           <TouchableOpacity
-            key={i}
-            style={[styles.settingCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}
+            style={[styles.linkCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}
+            onPress={() => router.push('/(tabs)/settings')}
+            activeOpacity={0.7}
           >
-            <View style={styles.settingLeft}>
-              <Ionicons name={item.icon} size={22} color={Brand.gold} />
-              <Text style={[styles.settingText, { color: theme.text }]}>{item.label}</Text>
+            <View style={styles.linkLeft}>
+              <View style={[styles.linkIconWrap, { backgroundColor: theme.tint + '22' }]}>
+                <Ionicons name="settings-outline" size={18} color={theme.tint} />
+              </View>
+              <Text style={[styles.linkText, { color: theme.text }]}>Settings</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
           </TouchableOpacity>
-        ))}
 
-        {/* Sign out */}
-        <TouchableOpacity
-          style={[styles.signOutButton, { borderColor: Brand.red }]}
-          onPress={signOut}
-        >
-          <Ionicons name="log-out-outline" size={20} color={Brand.red} />
-          <Text style={[styles.signOutText, { color: Brand.red }]}>Sign Out</Text>
-        </TouchableOpacity>
-
-        <Text style={[styles.version, { color: theme.textSecondary }]}>
-          Tara! v1.0.0 — Made with 💛 in 🇵🇭
-        </Text>
-      </ScrollView>
-    </View>
+          {/* Branding footer */}
+          <View style={styles.versionRow}>
+            <Image
+              source={require('@/assets/images/Logo.png')}
+              style={styles.versionLogo}
+              resizeMode="contain"
+            />
+            <Text style={[styles.version, { color: theme.textSecondary }]}>Tara! v1.0.0</Text>
+          </View>
+        </ScrollView>
+      </View>
+    </AnimatedScreen>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
+  // Header
   header: {
-    paddingTop: 56,
-    paddingBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.lg,
   },
   headerTitle: { fontSize: 24, fontWeight: '800' },
+  gearButton: { padding: 4 },
 
-  scrollContent: { paddingHorizontal: Spacing.xl, paddingBottom: 40 },
+  // Scroll
+  scrollContent: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: 60 },
 
-  // Profile
-  profileSection: { alignItems: 'center', marginVertical: Spacing.xxl },
+  // Profile hero
+  profileSection: { alignItems: 'center', marginBottom: Spacing.xxl },
   bigAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.md,
@@ -145,37 +177,25 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 18, fontWeight: '800' },
   statLabel: { fontSize: 11, marginTop: 4 },
 
-  // Settings
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: Spacing.md,
-  },
-  settingCard: {
+  // Section label
+  sectionLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: Spacing.md },
+
+  // Link rows
+  linkCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     borderWidth: 1,
     padding: Spacing.lg,
     marginBottom: Spacing.sm,
   },
-  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  settingText: { fontSize: 15, fontWeight: '600' },
+  linkLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  linkIconWrap: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  linkText: { fontSize: 15, fontWeight: '600' },
 
-  // Sign out
-  signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    paddingVertical: 14,
-    marginTop: Spacing.xxl,
-  },
-  signOutText: { fontSize: 16, fontWeight: '700' },
-
-  version: { textAlign: 'center', fontSize: 12, marginTop: Spacing.lg },
+  // Version
+  versionRow: { alignItems: 'center', marginTop: Spacing.xxxl },
+  versionLogo: { width: 28, height: 28, borderRadius: 6, marginBottom: 6 },
+  version: { fontSize: 12 },
 });

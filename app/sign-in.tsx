@@ -1,204 +1,190 @@
 /**
  * Sign-In Screen
- * Matches the Tara! mockup: Google sign-in + OTP via mobile number.
- * Has light/dark mode support.
+ * Layout:
+ *  - Top: artwork hero with logo icon in upper-left (black outline)
+ *  - Bottom: card with "Tara!" title at the top, then sign-in buttons below
  */
 
-import React, { useState } from 'react';
+import { Brand, Radius, Spacing } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAppTheme } from '@/contexts/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useRef, useState } from 'react';
 import {
-  View,
+  Animated,
+  Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from 'react-native';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAppTheme } from '@/contexts/ThemeContext';
-import { Brand, Spacing, Radius } from '@/constants/theme';
-import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SignInScreen() {
   const { signIn } = useAuth();
-  const { theme, isDark, toggleTheme } = useAppTheme();
+  const { theme, isDark } = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showOTP, setShowOTP] = useState(false);
   const [otpCode, setOtpCode] = useState('');
 
-  // Handle the "Send OTP" button
+  // Subtle press animation on the main button
+  const buttonScale = useRef(new Animated.Value(1)).current;
+
+  const animatePress = (callback: () => void) => {
+    Animated.sequence([
+      Animated.timing(buttonScale, { toValue: 0.97, duration: 80, useNativeDriver: true }),
+      Animated.timing(buttonScale, { toValue: 1, duration: 80, useNativeDriver: true }),
+    ]).start(callback);
+  };
+
   const handleSendOTP = () => {
-    if (phoneNumber.length >= 10) {
-      setShowOTP(true);
-    }
+    if (phoneNumber.length >= 10) animatePress(() => setShowOTP(true));
   };
 
-  // Handle OTP verification (placeholder — just signs in)
   const handleVerifyOTP = () => {
-    signIn('Jhirick');
+    animatePress(() => signIn('Jhirick'));
   };
 
-  // Handle Google sign-in (placeholder — just signs in)
   const handleGoogleSignIn = () => {
-    signIn('Jhirick');
+    animatePress(() => signIn('Jhirick'));
   };
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: theme.background }]}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+      {/* ── Top: artwork hero with logo in corner ───────── */}
+      <ImageBackground
+        source={require('@/assets/images/SplashScreen.png')}
+        style={styles.hero}
+        resizeMode="cover"
       >
-        {/* Theme toggle in corner */}
-        <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
-          <Ionicons
-            name={isDark ? 'sunny' : 'moon'}
-            size={24}
-            color={theme.text}
-          />
-        </TouchableOpacity>
-
-        {/* Logo area */}
-        <View style={styles.logoArea}>
-          <Text style={[styles.logoIcon, { color: Brand.gold }]}>🚐</Text>
-          <Text style={[styles.logoText, { color: theme.text }]}>
-            TARA!
-          </Text>
-          <View style={styles.sunBurst}>
-            <Text style={{ fontSize: 24 }}>☀️</Text>
-          </View>
-        </View>
-
-        <Text style={[styles.tagline, { color: theme.textSecondary }]}>
-          Plan together, pay together,{'\n'}no hiya involved.
-        </Text>
-
-        {/* Illustration placeholder */}
-        <View style={[styles.illustrationBox, { backgroundColor: isDark ? '#2D333B' : '#F5ECD7' }]}>
-          <Text style={styles.illustrationEmoji}>🏖️👨‍👩‍👧‍👦🍖🎉</Text>
-          <Text style={[styles.illustrationLabel, { color: theme.textSecondary }]}>
-            Puerto Galera
-          </Text>
-        </View>
-
-        {/* Sign-in card */}
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
-          {/* Google button */}
-          <TouchableOpacity
-            style={[styles.googleButton, { borderColor: theme.cardBorder }]}
-            onPress={handleGoogleSignIn}
-          >
-            <Text style={styles.googleIcon}>G</Text>
-            <Text style={[styles.googleText, { color: theme.text }]}>
-              Continue with Google
-            </Text>
-          </TouchableOpacity>
-
-          <Text style={[styles.helperText, { color: theme.textSecondary }]}>
-            It's the fastest, no-fuss way to join!
-          </Text>
-
-          {/* Divider */}
-          <View style={styles.dividerRow}>
-            <View style={[styles.dividerLine, { backgroundColor: theme.divider }]} />
-            <Text style={[styles.dividerText, { color: theme.textSecondary }]}>
-              o kaya
-            </Text>
-            <View style={[styles.dividerLine, { backgroundColor: theme.divider }]} />
-          </View>
-
-          {/* Mobile number section */}
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Mobile Number Login
-          </Text>
-          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-            Mobile Number
-          </Text>
-
-          <View style={[styles.phoneRow, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}>
-            <Text style={styles.flag}>🇵🇭</Text>
-            <Text style={[styles.countryCode, { color: theme.text }]}>+63</Text>
-            <View style={[styles.phoneDivider, { backgroundColor: theme.divider }]} />
-            <TextInput
-              style={[styles.phoneInput, { color: theme.text }]}
-              placeholder="912 345 6789"
-              placeholderTextColor={theme.textSecondary}
-              keyboardType="phone-pad"
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              maxLength={12}
+        {/* Logo icon in upper-left with black outline */}
+        <View style={[styles.logoCorner, { paddingTop: insets.top + 14 }]}>
+          <View style={styles.logoRing}>
+            <Image
+              source={require('@/assets/images/Logo.png')}
+              style={styles.logoImage}
+              resizeMode="cover"
             />
           </View>
-
-          {/* Send OTP button */}
-          {!showOTP && (
-            <TouchableOpacity
-              style={[styles.otpButton, { backgroundColor: Brand.gold }]}
-              onPress={handleSendOTP}
-            >
-              <Text style={styles.otpButtonText}>Send OTP Code</Text>
-            </TouchableOpacity>
-          )}
-
-          {/* OTP input — shows after tapping Send OTP */}
-          {showOTP && (
-            <View style={styles.otpSection}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                Enter 6-digit OTP
-              </Text>
-              <TextInput
-                style={[styles.otpInput, { 
-                  color: theme.text, 
-                  backgroundColor: theme.inputBg,
-                  borderColor: theme.inputBorder,
-                }]}
-                placeholder="• • • • • •"
-                placeholderTextColor={theme.textSecondary}
-                keyboardType="number-pad"
-                value={otpCode}
-                onChangeText={setOtpCode}
-                maxLength={6}
-                textAlign="center"
-              />
-              <TouchableOpacity
-                style={[styles.otpButton, { backgroundColor: Brand.gold }]}
-                onPress={handleVerifyOTP}
-              >
-                <Text style={styles.otpButtonText}>Verify & Sign In</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          <Text style={[styles.disclaimer, { color: theme.textSecondary }]}>
-            *Tita/Tito friendly! Use your active mobile number*
-          </Text>
-
-          {/* Sign up / Help links */}
-          <View style={styles.linksRow}>
-            <Text style={[styles.linkText, { color: theme.textSecondary }]}>
-              New to Tara?{' '}
-            </Text>
-            <TouchableOpacity>
-              <Text style={[styles.linkAction, { color: Brand.gold }]}>
-                [Sign Up]
-              </Text>
-            </TouchableOpacity>
-            <Text style={[styles.linkText, { color: theme.textSecondary }]}>
-              {' '}|{' '}
-            </Text>
-            <TouchableOpacity>
-              <Text style={[styles.linkAction, { color: Brand.gold }]}>
-                Help [?]
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
-      </ScrollView>
+      </ImageBackground>
+
+      {/* ── Bottom: card with title + form ──────────────── */}
+      <View style={[styles.card, { backgroundColor: isDark ? '#161B22' : '#FFFFFF' }]}>
+
+        {/* "Tara!" title above all buttons */}
+        <Text style={[styles.cardTitle, { color: theme.text }]}>Tara!</Text>
+        <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
+          Sign in to continue
+        </Text>
+
+        {/* Google Sign-In Button */}
+        <TouchableOpacity
+          style={[styles.googleButton, { borderColor: isDark ? '#2D333B' : '#E0E0E0' }]}
+          onPress={handleGoogleSignIn}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.googleG}>G</Text>
+          <Text style={[styles.googleText, { color: theme.text }]}>Continue with Google</Text>
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: isDark ? '#2D333B' : '#EBEBEB' }]} />
+          <Text style={[styles.dividerText, { color: theme.textSecondary }]}>o kaya</Text>
+          <View style={[styles.dividerLine, { backgroundColor: isDark ? '#2D333B' : '#EBEBEB' }]} />
+        </View>
+
+        {/* Phone number input */}
+        <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Mobile Number</Text>
+        <View
+          style={[
+            styles.phoneRow,
+            {
+              backgroundColor: isDark ? '#1C2128' : '#F6F6F6',
+              borderColor: isDark ? '#2D333B' : '#E0E0E0',
+            },
+          ]}
+        >
+          <Ionicons name="flag-outline" size={16} color={Brand.teal} />
+          <Text style={[styles.countryCode, { color: theme.text }]}>+63</Text>
+          <View style={[styles.phoneSep, { backgroundColor: isDark ? '#2D333B' : '#DDDDDD' }]} />
+          <TextInput
+            style={[styles.phoneInput, { color: theme.text }]}
+            placeholder="912 345 6789"
+            placeholderTextColor={theme.textSecondary}
+            keyboardType="phone-pad"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            maxLength={12}
+          />
+        </View>
+
+        {/* OTP input — appears after Send OTP */}
+        {showOTP && (
+          <View>
+            <Text style={[styles.inputLabel, { color: theme.textSecondary, marginTop: Spacing.md }]}>
+              Enter 6-digit OTP
+            </Text>
+            <TextInput
+              style={[
+                styles.otpInput,
+                {
+                  color: theme.text,
+                  backgroundColor: isDark ? '#1C2128' : '#F6F6F6',
+                  borderColor: Brand.teal,
+                },
+              ]}
+              placeholder="• • • • • •"
+              placeholderTextColor={theme.textSecondary}
+              keyboardType="number-pad"
+              value={otpCode}
+              onChangeText={setOtpCode}
+              maxLength={6}
+              textAlign="center"
+            />
+          </View>
+        )}
+
+        {/* Main action button */}
+        <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+          <TouchableOpacity
+            style={[styles.primaryButton, { backgroundColor: Brand.teal }]}
+            onPress={showOTP ? handleVerifyOTP : handleSendOTP}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.primaryButtonText}>
+              {showOTP ? 'Verify & Sign In' : 'Send OTP Code'}
+            </Text>
+            <Ionicons
+              name={showOTP ? 'checkmark-circle' : 'arrow-forward'}
+              size={18}
+              color="#FFF"
+            />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Links */}
+        <View style={styles.linksRow}>
+          <Text style={[styles.linkText, { color: theme.textSecondary }]}>New to Tara? </Text>
+          <TouchableOpacity>
+            <Text style={[styles.linkAction, { color: Brand.teal }]}>Sign Up</Text>
+          </TouchableOpacity>
+          <Text style={[styles.linkText, { color: theme.textSecondary }]}> · </Text>
+          <TouchableOpacity>
+            <Text style={[styles.linkAction, { color: Brand.teal }]}>Help</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -206,202 +192,154 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  scrollContent: {
-    flexGrow: 1,
+
+  // ── Hero artwork (top portion) ────────────────────────
+  hero: {
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+
+  // Logo in the upper-left corner
+  logoCorner: {
     paddingHorizontal: Spacing.xl,
-    paddingTop: 60,
-    paddingBottom: 40,
-    alignItems: 'center',
   },
-  themeToggle: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    padding: 8,
-    zIndex: 10,
-  },
-
-  // Logo
-  logoArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  logoIcon: {
-    fontSize: 32,
-    marginRight: Spacing.sm,
-  },
-  logoText: {
-    fontSize: 40,
-    fontWeight: '900',
-    letterSpacing: 2,
-  },
-  sunBurst: {
-    marginLeft: 4,
-    marginTop: -16,
-  },
-  tagline: {
-    fontSize: 15,
-    textAlign: 'center',
-    marginBottom: Spacing.lg,
-    lineHeight: 22,
-  },
-
-  // Illustration
-  illustrationBox: {
-    width: '100%',
-    borderRadius: Radius.lg,
-    padding: Spacing.xxl,
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  illustrationEmoji: {
-    fontSize: 48,
-    marginBottom: Spacing.sm,
-  },
-  illustrationLabel: {
-    fontSize: 13,
-    fontStyle: 'italic',
-  },
-
-  // Card
-  card: {
-    width: '100%',
-    borderRadius: Radius.xl,
-    padding: Spacing.xxl,
-    borderWidth: 1,
-    // Subtle shadow
+  logoRing: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    overflow: 'hidden',
+    // Subtle shadow — looks like a soft outline, not a hard border
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowOpacity: 0.18,
+    shadowRadius: 5,
     elevation: 4,
   },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+  },
 
-  // Google button
+  // ── Login Card (bottom portion) ───────────────────────
+  card: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xxxl,
+    marginTop: -20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+
+  // "Tara!" title at the top of the card
+  cardTitle: {
+    fontSize: 34,
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    marginBottom: Spacing.xl,
+    textAlign: 'center',
+  },
+
+  // ── Google Button ─────────────────────────────────────
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    marginBottom: Spacing.sm,
+    paddingVertical: 13,
+    borderRadius: Radius.lg,
+    borderWidth: 1.5,
+    marginBottom: Spacing.lg,
+    gap: 10,
   },
-  googleIcon: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginRight: Spacing.sm,
+  googleG: {
+    fontSize: 17,
+    fontWeight: '800',
     color: '#4285F4',
   },
   googleText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
-  helperText: {
-    fontSize: 12,
-    textAlign: 'center',
-    marginBottom: Spacing.lg,
-  },
 
-  // Divider
+  // ── Divider ───────────────────────────────────────────
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.lg,
+    gap: Spacing.md,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    marginHorizontal: Spacing.md,
-    fontSize: 13,
-    fontStyle: 'italic',
-  },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { fontSize: 13, fontStyle: 'italic' },
 
-  // Mobile Number
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: Spacing.md,
-  },
+  // ── Phone Input ───────────────────────────────────────
   inputLabel: {
     fontSize: 13,
+    fontWeight: '600',
     marginBottom: Spacing.sm,
   },
   phoneRow: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: Radius.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     paddingHorizontal: Spacing.md,
     height: 50,
-    marginBottom: Spacing.lg,
-  },
-  flag: {
-    fontSize: 20,
-    marginRight: 6,
-  },
-  countryCode: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  phoneDivider: {
-    width: 1,
-    height: 24,
-    marginHorizontal: Spacing.md,
-  },
-  phoneInput: {
-    flex: 1,
-    fontSize: 16,
-  },
-
-  // OTP
-  otpButton: {
-    paddingVertical: 14,
-    borderRadius: Radius.md,
-    alignItems: 'center',
     marginBottom: Spacing.md,
+    gap: 6,
   },
-  otpButtonText: {
-    color: Brand.white,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  otpSection: {
-    marginBottom: Spacing.sm,
-  },
+  countryCode: { fontSize: 15, fontWeight: '700' },
+  phoneSep: { width: 1, height: 20, marginHorizontal: Spacing.sm },
+  phoneInput: { flex: 1, fontSize: 15 },
+
+  // ── OTP Input ─────────────────────────────────────────
   otpInput: {
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: Radius.md,
-    height: 50,
+    height: 54,
     fontSize: 24,
-    letterSpacing: 8,
-    marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.md,
-  },
-
-  disclaimer: {
-    fontSize: 11,
-    textAlign: 'center',
-    fontStyle: 'italic',
+    letterSpacing: 10,
     marginBottom: Spacing.md,
   },
 
-  // Links
+  // ── Primary Button ────────────────────────────────────
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: Radius.lg,
+    marginBottom: Spacing.md,
+    gap: 8,
+    shadowColor: Brand.teal,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+
+  // ── Links ─────────────────────────────────────────────
   linksRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     flexWrap: 'wrap',
+    marginTop: Spacing.sm,
   },
-  linkText: {
-    fontSize: 13,
-  },
-  linkAction: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
+  linkText: { fontSize: 13 },
+  linkAction: { fontSize: 13, fontWeight: '700' },
 });

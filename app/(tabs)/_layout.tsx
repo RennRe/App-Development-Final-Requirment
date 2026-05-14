@@ -13,12 +13,12 @@ import { useAppTheme } from '@/contexts/ThemeContext';
 import { Brand } from '@/constants/theme';
 
 export default function TabLayout() {
-  const { theme, isDark } = useAppTheme();
+  const { theme } = useAppTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Brand.gold,
+        tabBarActiveTintColor: Brand.teal,
         tabBarInactiveTintColor: theme.tabIconDefault,
         headerShown: false,
         tabBarButton: HapticTab,
@@ -74,6 +74,14 @@ export default function TabLayout() {
         name="explore"
         options={{
           href: null,
+        }}
+      />
+
+      {/* Settings screen — hidden from tab bar, pushed from Profile */}
+      <Tabs.Screen
+        name="settings"
+        options={{
+          href: null, // hides it from the bottom tab bar
         }}
       />
     </Tabs>

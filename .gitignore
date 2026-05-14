@@ -44,3 +44,6 @@ app-example
 
 # agents
 .agents/
+
+# Study and AI usage docs (local only, not for git)
+Guide.md
