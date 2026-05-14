@@ -76,7 +76,7 @@ export default function NotificationsScreen() {
   return (
     <AnimatedScreen>
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.header, paddingTop: insets.top + 12 }]}>
+      <View style={[styles.header, { backgroundColor: isDark ? theme.header : '#FFFFFF', paddingTop: insets.top + 12 }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
         <TouchableOpacity>
           <Text style={[styles.markAll, { color: Brand.teal }]}>Mark all read</Text>

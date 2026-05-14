@@ -17,7 +17,7 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { Brand, Spacing, Radius } from '@/constants/theme';
@@ -61,18 +61,12 @@ export default function SettingsScreen() {
   const { signOut } = useAuth();
   const { theme, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Header with back button */}
-      <View style={[styles.header, { backgroundColor: theme.header, paddingTop: insets.top + 12 }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color={theme.text} />
-        </TouchableOpacity>
+      {/* Header — distinct in both light and dark mode */}
+      <View style={[styles.header, { backgroundColor: isDark ? theme.header : '#FFFFFF', paddingTop: insets.top + 12 }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Settings</Text>
-        {/* Spacer to center the title */}
-        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -149,16 +143,14 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
 
-  // Header
+  // Header — centered title, no back button
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.lg,
   },
-  backButton: { width: 40, alignItems: 'flex-start' },
-  headerTitle: { fontSize: 20, fontWeight: '800' },
+  headerTitle: { fontSize: 22, fontWeight: '800' },
 
   // Scroll area
   scrollContent: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, paddingBottom: 60 },

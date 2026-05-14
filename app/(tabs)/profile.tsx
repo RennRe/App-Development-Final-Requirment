@@ -24,7 +24,7 @@ import AnimatedScreen from '@/components/AnimatedScreen';
 
 export default function ProfileScreen() {
   const { userName } = useAuth();
-  const { theme } = useAppTheme();
+  const { theme, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -44,16 +44,15 @@ export default function ProfileScreen() {
   return (
     <AnimatedScreen>
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        {/* Header */}
-        <View style={[styles.header, { backgroundColor: theme.header, paddingTop: insets.top + 12 }]}>
+        {/* Header — distinct in both light and dark mode */}
+        <View style={[
+          styles.header,
+          {
+            backgroundColor: isDark ? theme.header : '#FFFFFF',
+            paddingTop: insets.top + 12,
+          },
+        ]}>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Profile</Text>
-          {/* Gear icon → opens Settings */}
-          <TouchableOpacity
-            style={styles.gearButton}
-            onPress={() => router.push('/(tabs)/settings')}
-          >
-            <Ionicons name="settings-outline" size={22} color={theme.text} />
-          </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>

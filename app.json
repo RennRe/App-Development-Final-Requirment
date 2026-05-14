@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AppDevFinal",
+    "name": "Tara!",
     "slug": "AppDevFinal",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -30,10 +30,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/SplashScreen.jpeg",
-          "imageWidth": 300,
+          "image": "./assets/images/SplashScreen.png",
+          "imageWidth": 280,
           "resizeMode": "contain",
-          "backgroundColor": "#FFF8E7",
+          "backgroundColor": "#FFFFFF",
           "dark": {
             "backgroundColor": "#0D1117"
           }
