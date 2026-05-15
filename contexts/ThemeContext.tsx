@@ -11,9 +11,11 @@ import React, {
   createContext,
   useContext,
   useState,
+  useEffect,
   type ReactNode,
 } from 'react';
 import { useColorScheme as useSystemColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   THEME_PALETTES,
   buildColors,
@@ -35,15 +37,58 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const THEME_STORAGE_KEY = '@appearance_settings';
+
 // Provider — wrap your entire app with this
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useSystemColorScheme(); // 'light' | 'dark' | null
 
   // Which brightness mode the user has selected
-  const [colorMode, setColorMode] = useState<ColorMode>('system');
+  const [colorMode, setColorModeState] = useState<ColorMode>('system');
 
   // Which color palette the user has selected
-  const [themeName, setThemeName] = useState<ThemeName>('Default');
+  const [themeName, setThemeNameState] = useState<ThemeName>('Default');
+
+  useEffect(() => {
+    // Load from storage on mount
+    const loadSettings = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.colorMode) setColorModeState(parsed.colorMode);
+          if (parsed.themeName) setThemeNameState(parsed.themeName);
+        }
+      } catch (error) {
+        console.error('Failed to load theme settings:', error);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const setColorMode = async (mode: ColorMode) => {
+    setColorModeState(mode);
+    try {
+      const stored = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+      const parsed = stored ? JSON.parse(stored) : {};
+      parsed.colorMode = mode;
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(parsed));
+    } catch (e) {
+      console.error('Failed to save color mode:', e);
+    }
+  };
+
+  const setThemeName = async (name: ThemeName) => {
+    setThemeNameState(name);
+    try {
+      const stored = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+      const parsed = stored ? JSON.parse(stored) : {};
+      parsed.themeName = name;
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(parsed));
+    } catch (e) {
+      console.error('Failed to save theme name:', e);
+    }
+  };
 
   // Calculate whether we're actually in dark mode right now
   const isDark =
