@@ -115,7 +115,7 @@ export default function HomeScreen() {
 
             {/* Avatar button */}
             <TouchableOpacity
-              style={[styles.avatar, { backgroundColor: Brand.teal }]}
+              style={[styles.avatar, { backgroundColor: theme.tint }]}
               onPress={() => router.push('/(tabs)/profile')}
             >
               <Text style={styles.avatarText}>{userName[0]}</Text>
@@ -136,10 +136,10 @@ export default function HomeScreen() {
                 { backgroundColor: isDark ? '#1C2A28' : '#E8F8F5', borderColor: isDark ? '#2D3E3B' : '#C8EEE8' },
               ]}
             >
-              <View style={[styles.actionIconWrap, { backgroundColor: Brand.teal }]}>
+              <View style={[styles.actionIconWrap, { backgroundColor: theme.tint }]}>
                 <Ionicons name="add" size={22} color="#FFF" />
               </View>
-              <Text style={[styles.actionText, { color: isDark ? Brand.teal : Brand.tealDark }]}>
+              <Text style={[styles.actionText, { color: theme.tint }]}>
                 Create Event
               </Text>
             </TouchableOpacity>
@@ -150,10 +150,10 @@ export default function HomeScreen() {
                 { backgroundColor: isDark ? '#2A2518' : '#FFF3E0', borderColor: isDark ? '#3E3020' : '#FFE0B8' },
               ]}
             >
-              <View style={[styles.actionIconWrap, { backgroundColor: Brand.orange }]}>
+              <View style={[styles.actionIconWrap, { backgroundColor: theme.accent }]}>
                 <Ionicons name="qr-code" size={22} color="#FFF" />
               </View>
-              <Text style={[styles.actionText, { color: isDark ? Brand.orange : '#C86840' }]}>
+              <Text style={[styles.actionText, { color: theme.accent }]}>
                 Join by QR
               </Text>
             </TouchableOpacity>
@@ -170,9 +170,9 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.eventList}
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <TouchableOpacity
-                style={[styles.eventCard, { backgroundColor: item.gradientTop }]}
+                style={[styles.eventCard, { backgroundColor: index % 2 === 0 ? theme.tint : theme.accent }]}
                 onPress={() => openEvent(item.id)}
                 activeOpacity={0.85}
               >
@@ -247,14 +247,14 @@ export default function HomeScreen() {
                     { backgroundColor: isDark ? '#1C2128' : '#F5F5F5' },
                   ]}
                 >
-                  <Ionicons name={event.icon} size={18} color={Brand.teal} />
+                  <Ionicons name={event.icon} size={18} color={theme.tint} />
                 </View>
                 <View style={styles.pastInfo}>
                   <Text style={[styles.pastName, { color: theme.text }]}>{event.name}</Text>
                   <Text
                     style={[
                       styles.pastStatus,
-                      { color: event.status === 'Settled' ? Brand.green : Brand.orange },
+                      { color: event.status === 'Settled' ? theme.positive : theme.accent },
                     ]}
                   >
                     {event.status}
@@ -264,12 +264,12 @@ export default function HomeScreen() {
 
               {event.status !== 'Settled' ? (
                 <TouchableOpacity
-                  style={[styles.settleButton, { backgroundColor: Brand.orange }]}
+                  style={[styles.settleButton, { backgroundColor: theme.accent }]}
                 >
                   <Text style={styles.settleText}>Settle Up</Text>
                 </TouchableOpacity>
               ) : (
-                <Ionicons name="checkmark-circle" size={24} color={Brand.green} />
+                <Ionicons name="checkmark-circle" size={24} color={theme.positive} />
               )}
             </TouchableOpacity>
           ))}

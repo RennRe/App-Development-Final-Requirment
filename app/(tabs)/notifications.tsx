@@ -18,13 +18,7 @@ import { Brand, Spacing, Radius } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Icon + color config per notification type
-const NOTIF_ICONS: Record<string, { name: any; color: string }> = {
-  invite: { name: 'mail-outline', color: Brand.teal },
-  nudge: { name: 'cash-outline', color: Brand.orange },
-  system: { name: 'checkmark-circle-outline', color: Brand.green },
-  payment: { name: 'wallet-outline', color: Brand.green },
-};
+
 
 const NOTIFICATIONS = [
   {
@@ -73,13 +67,21 @@ export default function NotificationsScreen() {
   const { theme, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
 
+  // Icon + color config per notification type
+  const NOTIF_ICONS: Record<string, { name: any; color: string }> = {
+    invite: { name: 'mail-outline', color: theme.tint },
+    nudge: { name: 'cash-outline', color: theme.accent },
+    system: { name: 'checkmark-circle-outline', color: theme.positive },
+    payment: { name: 'wallet-outline', color: theme.positive },
+  };
+
   return (
     <AnimatedScreen>
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { backgroundColor: isDark ? theme.header : '#FFFFFF', paddingTop: insets.top + 12 }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
         <TouchableOpacity>
-          <Text style={[styles.markAll, { color: Brand.teal }]}>Mark all read</Text>
+          <Text style={[styles.markAll, { color: theme.tint }]}>Mark all read</Text>
         </TouchableOpacity>
       </View>
 
@@ -107,7 +109,7 @@ export default function NotificationsScreen() {
                 <Text style={[styles.notifBody, { color: theme.textSecondary }]}>{notif.body}</Text>
                 <Text style={[styles.notifTime, { color: theme.textSecondary }]}>{notif.time}</Text>
               </View>
-              {notif.unread && <View style={styles.unreadDot} />}
+              {notif.unread && <View style={[styles.unreadDot, { backgroundColor: theme.tint }]} />}
             </TouchableOpacity>
           );
         })}
@@ -140,6 +142,6 @@ const styles = StyleSheet.create({
   notifTime: { fontSize: 11, marginTop: 4 },
   unreadDot: {
     width: 10, height: 10, borderRadius: 5,
-    backgroundColor: Brand.teal, marginTop: 4,
+    marginTop: 4,
   },
 });

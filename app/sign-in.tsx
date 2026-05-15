@@ -96,11 +96,11 @@ export default function SignInScreen() {
         <View style={styles.linksRow}>
           <Text style={[styles.linkText, { color: theme.textSecondary }]}>New to Tara? </Text>
           <TouchableOpacity>
-            <Text style={[styles.linkAction, { color: Brand.teal }]}>Sign Up</Text>
+            <Text style={[styles.linkAction, { color: theme.tint }]}>Sign Up</Text>
           </TouchableOpacity>
           <Text style={[styles.linkText, { color: theme.textSecondary }]}> · </Text>
           <TouchableOpacity>
-            <Text style={[styles.linkAction, { color: Brand.teal }]}>Help</Text>
+            <Text style={[styles.linkAction, { color: theme.tint }]}>Help</Text>
           </TouchableOpacity>
         </View>
       </View>

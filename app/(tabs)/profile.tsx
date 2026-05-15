@@ -36,9 +36,9 @@ export default function ProfileScreen() {
 
   // Quick-access links shown on profile (read-only info rows)
   const quickLinks = [
-    { icon: 'calendar-outline' as const, label: 'My Events', color: Brand.teal },
-    { icon: 'wallet-outline' as const, label: 'Payment History', color: Brand.teal },
-    { icon: 'people-outline' as const, label: 'Friends / Grupo', color: Brand.teal },
+    { icon: 'calendar-outline' as const, label: 'My Events', color: theme.tint },
+    { icon: 'wallet-outline' as const, label: 'Payment History', color: theme.tint },
+    { icon: 'people-outline' as const, label: 'Friends / Grupo', color: theme.tint },
   ];
 
   return (
@@ -58,7 +58,7 @@ export default function ProfileScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Avatar + name */}
           <View style={styles.profileSection}>
-            <View style={[styles.bigAvatar, { backgroundColor: Brand.teal }]}>
+            <View style={[styles.bigAvatar, { backgroundColor: theme.tint }]}>
               <Text style={styles.bigAvatarText}>{userName[0]}</Text>
             </View>
             <Text style={[styles.profileName, { color: theme.text }]}>{userName}</Text>

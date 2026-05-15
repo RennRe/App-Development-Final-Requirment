@@ -81,14 +81,14 @@ export default function SettingsScreen() {
         <SettingRow
           icon="notifications-outline"
           label="Notifications"
-          iconBg={isDark ? '#1C2A28' : '#E8F8F5'}
-          iconColor={Brand.teal}
+          iconBg={theme.tint + '1A'}
+          iconColor={theme.tint}
         />
         <SettingRow
           icon="language-outline"
           label="Language / Wika"
-          iconBg={isDark ? '#1C2A28' : '#E8F8F5'}
-          iconColor={Brand.teal}
+          iconBg={theme.tint + '1A'}
+          iconColor={theme.tint}
         />
 
         {/* ── LEGAL ──────────────────────────────────── */}
@@ -97,14 +97,14 @@ export default function SettingsScreen() {
         <SettingRow
           icon="shield-checkmark-outline"
           label="Privacy Policy"
-          iconBg={isDark ? '#1C2A28' : '#E8F8F5'}
-          iconColor={Brand.teal}
+          iconBg={theme.tint + '1A'}
+          iconColor={theme.tint}
         />
         <SettingRow
           icon="help-circle-outline"
           label="Help & Support"
-          iconBg={isDark ? '#1C2A28' : '#E8F8F5'}
-          iconColor={Brand.teal}
+          iconBg={theme.tint + '1A'}
+          iconColor={theme.tint}
         />
 
         {/* ── ACCOUNT ────────────────────────────────── */}

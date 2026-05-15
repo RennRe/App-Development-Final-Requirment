@@ -91,7 +91,7 @@ export default function EventScreen() {
           <TouchableOpacity style={styles.iconButton}>
             <Ionicons name="notifications-outline" size={20} color={theme.text} />
           </TouchableOpacity>
-          <View style={[styles.profileCircle, { backgroundColor: Brand.teal }]}>
+          <View style={[styles.profileCircle, { backgroundColor: theme.tint }]}>
             <Text style={styles.profileText}>J</Text>
           </View>
         </View>
@@ -100,7 +100,7 @@ export default function EventScreen() {
       {/* Event info bar */}
       <View style={[styles.eventBar, { backgroundColor: isDark ? '#1C2128' : '#FFF' }]}>
         <View style={[styles.eventBarIcon, { backgroundColor: isDark ? '#2D333B' : '#FFF3E0' }]}>
-          <Ionicons name="sunny" size={20} color={Brand.orange} />
+          <Ionicons name="sunny" size={20} color={theme.accent} />
         </View>
         <Text style={[styles.eventBarName, { color: theme.text }]}>Puerto Galera</Text>
         <View style={styles.eventBarAvatars}>
@@ -121,10 +121,10 @@ export default function EventScreen() {
           return (
             <TouchableOpacity
               key={tab}
-              style={[styles.tab, isActive && { borderBottomColor: Brand.teal, borderBottomWidth: 3 }]}
+              style={[styles.tab, isActive && { borderBottomColor: theme.tint, borderBottomWidth: 3 }]}
               onPress={() => setActiveTab(tab)}
             >
-              <Text style={[styles.tabText, { color: isActive ? Brand.teal : theme.textSecondary }, isActive && styles.tabTextActive]}>
+              <Text style={[styles.tabText, { color: isActive ? theme.tint : theme.textSecondary }, isActive && styles.tabTextActive]}>
                 {labels[tab]}
               </Text>
             </TouchableOpacity>
@@ -148,12 +148,12 @@ export default function EventScreen() {
             <View style={[styles.balanceCard, { backgroundColor: isDark ? '#1C2128' : '#FFF', borderColor: theme.cardBorder }]}>
               <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>Your Status</Text>
               <View style={styles.balanceRow}>
-                <View style={[styles.statusDot, { backgroundColor: userBalance >= 0 ? Brand.green : Brand.red }]} />
+                <View style={[styles.statusDot, { backgroundColor: userBalance >= 0 ? theme.positive : theme.negative }]} />
                 <Text style={[styles.balanceAmount, { color: userBalance >= 0 ? theme.positive : theme.negative }]}>
                   {userBalance >= 0 ? 'YOU ARE OWED' : 'YOU OWE'} ₱{Math.abs(userBalance).toLocaleString()}
                 </Text>
               </View>
-              <TouchableOpacity style={[styles.gcashButton, { backgroundColor: Brand.teal }]}>
+              <TouchableOpacity style={[styles.gcashButton, { backgroundColor: theme.tint }]}>
                 <Ionicons name="card-outline" size={16} color="#FFF" />
                 <Text style={styles.gcashText}>Settle Up via GCash</Text>
               </TouchableOpacity>
@@ -162,15 +162,15 @@ export default function EventScreen() {
             {/* Resibo feed */}
             <View style={styles.resiboHeader}>
               <Text style={[styles.resiboLabel, { color: theme.textSecondary }]}>LATEST RESIBO</Text>
-              <View style={styles.syncDot} />
-              <Text style={[styles.syncText, { color: Brand.green }]}>Synced</Text>
+              <View style={[styles.syncDot, { backgroundColor: theme.positive }]} />
+              <Text style={[styles.syncText, { color: theme.positive }]}>Synced</Text>
             </View>
 
             {EXPENSES.map((expense) => (
               <View key={expense.id} style={[styles.resiboCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
                 <View style={styles.resiboLeft}>
                   <View style={[styles.resiboIconWrap, { backgroundColor: isDark ? '#2D333B' : '#F5F5F5' }]}>
-                    <Ionicons name={expense.icon} size={20} color={Brand.teal} />
+                    <Ionicons name={expense.icon} size={20} color={theme.tint} />
                   </View>
                   <View style={styles.resiboInfo}>
                     <View style={styles.resiboNameRow}>
@@ -208,7 +208,7 @@ export default function EventScreen() {
                 <View style={[
                   styles.checkbox,
                   item.done
-                    ? { backgroundColor: Brand.teal, borderColor: Brand.teal }
+                    ? { backgroundColor: theme.tint, borderColor: theme.tint }
                     : { borderColor: theme.textSecondary }
                 ]}>
                   {item.done && <Ionicons name="checkmark" size={16} color="#FFF" />}
@@ -243,11 +243,11 @@ export default function EventScreen() {
                   </View>
                 ) : (
                   <View style={styles.userBubbleRow}>
-                    <View style={[styles.chatAvatar, { backgroundColor: Brand.teal }]}>
+                    <View style={[styles.chatAvatar, { backgroundColor: theme.tint }]}>
                       <Text style={styles.chatAvatarText}>{msg.sender?.[0]}</Text>
                     </View>
                     <View style={[styles.userBubble, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
-                      <Text style={[styles.chatSender, { color: Brand.teal }]}>{msg.sender}</Text>
+                      <Text style={[styles.chatSender, { color: theme.tint }]}>{msg.sender}</Text>
                       <Text style={[styles.chatMessage, { color: theme.text }]}>{msg.text}</Text>
                       <Text style={[styles.chatTime, { color: theme.textSecondary }]}>{msg.time}</Text>
                     </View>
@@ -264,7 +264,7 @@ export default function EventScreen() {
                 value={chatInput}
                 onChangeText={setChatInput}
               />
-              <TouchableOpacity style={[styles.sendButton, { backgroundColor: Brand.teal }]}>
+              <TouchableOpacity style={[styles.sendButton, { backgroundColor: theme.tint }]}>
                 <Ionicons name="send" size={18} color="#FFF" />
               </TouchableOpacity>
             </View>
@@ -274,7 +274,7 @@ export default function EventScreen() {
 
       {/* FAB (only on board + ambagan) */}
       {activeTab !== 'chika' && (
-        <TouchableOpacity style={[styles.fab, { backgroundColor: Brand.teal }]}>
+        <TouchableOpacity style={[styles.fab, { backgroundColor: theme.tint }]}>
           <Ionicons name="add" size={28} color="#FFF" />
         </TouchableOpacity>
       )}
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   gcashText: { fontSize: 14, fontWeight: '700', color: '#FFF' },
   resiboHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: Spacing.md },
   resiboLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
-  syncDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Brand.green },
+  syncDot: { width: 8, height: 8, borderRadius: 4 },
   syncText: { fontSize: 11, fontWeight: '600' },
   resiboCard: { flexDirection: 'row', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, marginBottom: Spacing.md },
   resiboLeft: { flexDirection: 'row', gap: 12, flex: 1 },
