@@ -115,7 +115,7 @@ function CustomSplash({ onDone }: { onDone: () => void }) {
 // Reads auth + theme state, and decides what to show
 function InnerLayout() {
   const { isDark } = useAppTheme();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isAuthLoading } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
@@ -123,8 +123,8 @@ function InnerLayout() {
     SplashScreen.hideAsync();
   }, []);
 
-  // While our custom splash is animating, show it on top of everything
-  if (showSplash) {
+  // While our custom splash is animating OR auth is still loading, show splash
+  if (showSplash || isAuthLoading) {
     return (
       <>
         <StatusBar style="dark" />
