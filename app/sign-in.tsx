@@ -5,29 +5,28 @@
  *  - Bottom: card with "Tara!" title at the top, then sign-in buttons below
  */
 
-import { Brand, Radius, Spacing } from '@/constants/theme';
-import { useAuth } from '@/contexts/AuthContext';
+import { Radius, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useRef, useState } from 'react';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import React, { useRef } from 'react';
 import {
   Animated,
-  Image,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
-  const { signIn } = useAuth();
   const { theme, isDark } = useAppTheme();
-  const insets = useSafeAreaInsets();
 
   // Subtle press animation on the main button
   const buttonScale = useRef(new Animated.Value(1)).current;
@@ -39,12 +38,67 @@ export default function SignInScreen() {
     ]).start(callback);
   };
 
+  const performOAuth = async (provider: 'google' | 'facebook') => {
+    try {
+      const redirectUrl = makeRedirectUri();
+      console.log('=== YOUR EXACT REDIRECT URL ===');
+      console.log(redirectUrl);
+      console.log('===============================');
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) {
+        console.error(`${provider} OAuth Error:`, error.message);
+        return;
+      }
+
+      if (data?.url) {
+        const res = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+
+        if (res.type === 'success' && res.url) {
+          // Supabase returns tokens in the URL fragment like: #access_token=...&refresh_token=...
+          const hashIdx = res.url.indexOf('#');
+          const queryIdx = res.url.indexOf('?');
+          const paramString = hashIdx !== -1 
+            ? res.url.substring(hashIdx + 1) 
+            : queryIdx !== -1 ? res.url.substring(queryIdx + 1) : '';
+          
+          const params = paramString.split('&').reduce((acc, current) => {
+            const [key, value] = current.split('=');
+            if (key && value) acc[key] = decodeURIComponent(value);
+            return acc;
+          }, {} as Record<string, string>);
+
+          if (params.access_token && params.refresh_token) {
+            const { error: sessionError } = await supabase.auth.setSession({
+              access_token: params.access_token,
+              refresh_token: params.refresh_token,
+            });
+            if (sessionError) {
+              console.error('Session creation error:', sessionError.message);
+            }
+          } else {
+             console.error('No access token found in URL:', res.url);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Unexpected OAuth error:', err);
+    }
+  };
+
   const handleGoogleSignIn = () => {
-    animatePress(() => signIn('Jhirick'));
+    animatePress(() => performOAuth('google'));
   };
 
   const handleFacebookSignIn = () => {
-    animatePress(() => signIn('Jhirick'));
+    animatePress(() => performOAuth('facebook'));
   };
 
   return (
