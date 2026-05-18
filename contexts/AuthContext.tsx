@@ -1,74 +1,56 @@
-/**
- * AuthContext
- * Manages whether the user is logged in or not.
- * Now uses AsyncStorage to remember the user even after closing the app.
- */
-
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/lib/supabase';
+import { Session, User } from '@supabase/supabase-js';
 
 type AuthContextType = {
   isSignedIn: boolean;
   userName: string;
-  isAuthLoading: boolean; // Tells the app if we are still checking storage
+  isAuthLoading: boolean;
   signIn: (name?: string) => Promise<void>;
   signOut: () => Promise<void>;
+  session: Session | null;
+  user: User | null;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [userName, setUserName] = useState('Jhirick');
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // Load from storage when the app opens
   useEffect(() => {
-    async function loadAuth() {
-      try {
-        const savedSignIn = await AsyncStorage.getItem('@auth_signed_in');
-        const savedName = await AsyncStorage.getItem('@auth_user_name');
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsAuthLoading(false);
+    });
 
-        if (savedSignIn === 'true') {
-          setIsSignedIn(true);
-          if (savedName) setUserName(savedName);
-        }
-      } catch (error) {
-        console.error('Failed to load auth data:', error);
-      } finally {
-        setIsAuthLoading(false); // Done loading
-      }
-    }
-    loadAuth();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (name?: string) => {
-    try {
-      const newName = name || userName;
-      if (name) setUserName(newName);
-      setIsSignedIn(true);
-
-      // Save to storage
-      await AsyncStorage.setItem('@auth_signed_in', 'true');
-      await AsyncStorage.setItem('@auth_user_name', newName);
-    } catch (error) {
-      console.error('Failed to save auth data:', error);
-    }
+    // This is kept for backward compatibility if called manually,
+    // but the actual sign-in happens via Supabase OAuth in sign-in.tsx
+    console.warn("Call supabase.auth.signInWithOAuth instead of signIn from AuthContext");
   };
 
   const signOut = async () => {
-    try {
-      setIsSignedIn(false);
-      // Remove from storage
-      await AsyncStorage.removeItem('@auth_signed_in');
-      await AsyncStorage.removeItem('@auth_user_name');
-    } catch (error) {
-      console.error('Failed to clear auth data:', error);
-    }
+    await supabase.auth.signOut();
   };
 
+  const isSignedIn = !!session;
+  // If user signed in with Google, their name will be in user_metadata.full_name
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+
   return (
-    <AuthContext.Provider value={{ isSignedIn, userName, isAuthLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ isSignedIn, userName, isAuthLoading, signIn, signOut, session, user }}>
       {children}
     </AuthContext.Provider>
   );
