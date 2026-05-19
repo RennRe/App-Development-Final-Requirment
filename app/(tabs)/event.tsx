@@ -61,6 +61,9 @@ export default function EventScreen() {
   const [todos, setTodos] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Custom Keyboard Height State
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // Modal States
   const [isExpenseModalVisible, setIsExpenseModalVisible] = useState(false);
@@ -280,6 +283,25 @@ export default function EventScreen() {
       }, 100);
     }
   }, [messages, activeTab]);
+
+  // Listen to keyboard height to adjust custom View precisely
+  useEffect(() => {
+    const showSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+      // Also scroll to bottom when keyboard opens
+      if (activeTab === 'chika') {
+        setTimeout(() => chatScrollRef.current?.scrollToEnd({ animated: true }), 100);
+      }
+    });
+    const hideSub = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [activeTab]);
 
   // ── Calculations ────────────────────────────────────────────────────────
   // Calculate expenses paid by each member dynamically!
@@ -560,11 +582,7 @@ export default function EventScreen() {
 
       {/* Tab Content */}
       {activeTab === 'chika' ? (
-        <KeyboardAvoidingView
-          style={styles.chatContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 160 : 0}
-        >
+        <View style={[styles.chatContainer, { paddingBottom: keyboardHeight > 0 ? Math.max(0, keyboardHeight - (insets.bottom + 49)) : 0 }]}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{ flex: 1 }}>
               <ScrollView
@@ -630,7 +648,7 @@ export default function EventScreen() {
           </TouchableWithoutFeedback>
 
           {/* Chat input */}
-          <View style={[styles.chatInputRow, { backgroundColor: theme.surface, borderColor: theme.cardBorder, marginBottom: insets.bottom > 0 ? insets.bottom + 4 : 12 }]}>
+          <View style={[styles.chatInputRow, { backgroundColor: theme.surface, borderColor: theme.cardBorder, marginBottom: 10 }]}>
             <TextInput
               style={[styles.chatInput, { color: theme.text }]}
               placeholder="Mag-chika ka dito..."
@@ -643,7 +661,7 @@ export default function EventScreen() {
               <Ionicons name="send" size={18} color="#FFF" />
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       ) : (
         <>
           <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentInner}>
