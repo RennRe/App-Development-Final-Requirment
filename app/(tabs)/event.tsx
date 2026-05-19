@@ -16,6 +16,10 @@ import {
   Alert,
   ActivityIndicator,
   Clipboard,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,6 +48,7 @@ export default function EventScreen() {
   const eventId = params.id as string;
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
+  const chatScrollRef = useRef<ScrollView>(null);
 
   // ── States ─────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<TabName>('ambagan');
@@ -271,7 +276,7 @@ export default function EventScreen() {
   useEffect(() => {
     if (activeTab === 'chika') {
       setTimeout(() => {
-        scrollRef.current?.scrollToEnd({ animated: true });
+        chatScrollRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
   }, [messages, activeTab]);
@@ -554,194 +559,208 @@ export default function EventScreen() {
       </View>
 
       {/* Tab Content */}
-      <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentInner}>
-
-        {/* AMBAGAN TAB */}
-        {activeTab === 'ambagan' && (
-          <>
-            {/* Total cost */}
-            <View style={[styles.totalCard, { backgroundColor: isDark ? '#1C2128' : '#FFF', borderColor: theme.cardBorder }]}>
-              <Text style={[styles.totalLabel, { color: theme.textSecondary }]}>TOTAL EVENT COST</Text>
-              <Text style={[styles.totalAmount, { color: theme.text }]}>₱{totalCost.toLocaleString()}</Text>
-            </View>
-
-            {/* User balance */}
-            <View style={[styles.balanceCard, { backgroundColor: isDark ? '#1C2128' : '#FFF', borderColor: theme.cardBorder }]}>
-              <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>Your Share Status (₱{perPerson.toLocaleString()} per person)</Text>
-              <View style={styles.balanceRow}>
-                <View style={[styles.statusDot, { backgroundColor: userBalance >= 0 ? theme.positive : theme.negative }]} />
-                <Text style={[styles.balanceAmount, { color: userBalance >= 0 ? theme.positive : theme.negative }]}>
-                  {userBalance >= 0 ? 'YOU ARE OWED' : 'YOU OWE'} ₱{Math.abs(userBalance).toLocaleString()}
-                </Text>
-              </View>
-              <TouchableOpacity style={[styles.gcashButton, { backgroundColor: theme.tint }]} onPress={handleSettleUp}>
-                <Ionicons name="card-outline" size={16} color="#FFF" />
-                <Text style={styles.gcashText}>Settle Up via GCash</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Resibo feed */}
-            <View style={styles.resiboHeader}>
-              <Text style={[styles.resiboLabel, { color: theme.textSecondary }]}>LATEST RESIBO</Text>
-              <View style={[styles.syncDot, { backgroundColor: theme.positive }]} />
-              <Text style={[styles.syncText, { color: theme.positive }]}>Live Sync</Text>
-            </View>
-
-            {expenses.length === 0 ? (
-              <View style={[styles.emptyStateMini, { backgroundColor: theme.surface }]}>
-                <Text style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 13 }}>Wala pang nagagastos sa trip na ito.</Text>
-              </View>
-            ) : (
-              expenses.map((expense) => (
-                <View key={expense.id} style={[styles.resiboCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
-                  <View style={styles.resiboLeft}>
-                    <View style={[styles.resiboIconWrap, { backgroundColor: isDark ? '#2D333B' : '#F5F5F5' }]}>
-                      <Ionicons name={expense.icon} size={20} color={theme.tint} />
-                    </View>
-                    <View style={styles.resiboInfo}>
-                      <View style={styles.resiboNameRow}>
-                        <Text style={[styles.resiboName, { color: theme.text }]}>{expense.name}</Text>
-                      </View>
-                      <Text style={[styles.resiboPrice, { color: theme.text }]}>₱{expense.price.toLocaleString()}</Text>
-                      <Text style={[styles.resiboPayer, { color: theme.textSecondary }]}>
-                        Paid by: {expense.payer}
-                      </Text>
-                    </View>
+      {activeTab === 'chika' ? (
+        <KeyboardAvoidingView
+          style={styles.chatContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 96 : 0}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1 }}>
+              <ScrollView
+                ref={chatScrollRef}
+                style={styles.chatScrollView}
+                contentContainerStyle={styles.chatContentInner}
+                keyboardShouldPersistTaps="handled"
+              >
+                {messages.length === 0 ? (
+                  <View style={[styles.emptyStateMini, { backgroundColor: theme.surface, paddingVertical: 40 }]}>
+                    <Ionicons name="chatbubbles-outline" size={32} color={theme.textSecondary} style={{ alignSelf: 'center', marginBottom: 8 }} />
+                    <Text style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 13 }}>Simulan ang chika para sa gala na ito!</Text>
                   </View>
-                </View>
-              ))
-            )}
-            <View style={styles.fabSpacer} />
-          </>
-        )}
-
-        {/* BOARD TAB */}
-        {activeTab === 'board' && (
-          <>
-            <Text style={[styles.boardSectionTitle, { color: theme.textSecondary }]}>
-              TO BUY / TO BRING
-            </Text>
-            {todos.length === 0 ? (
-              <View style={[styles.emptyStateMini, { backgroundColor: theme.surface }]}>
-                <Text style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 13 }}>Wala pang mga task ang board.</Text>
-              </View>
-            ) : (
-              todos.map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={[styles.todoCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}
-                  onPress={() => handleToggleTodo(item.id, item.done, item.text)}
-                >
-                  <View style={[
-                    styles.checkbox,
-                    item.done
-                      ? { backgroundColor: theme.tint, borderColor: theme.tint }
-                      : { borderColor: theme.textSecondary }
-                  ]}>
-                    {item.done && <Ionicons name="checkmark" size={16} color="#FFF" />}
-                  </View>
-                  <View style={styles.todoContent}>
-                    <Text style={[
-                      styles.todoText, { color: theme.text },
-                      item.done && { textDecorationLine: 'line-through', opacity: 0.5 },
-                    ]}>
-                      {item.text}
-                    </Text>
-                    <Text style={[styles.todoAssignee, { color: theme.textSecondary }]}>
-                      Assigned to: {item.assignee}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))
-            )}
-            <View style={styles.fabSpacer} />
-          </>
-        )}
-
-        {/* CHIKA TAB */}
-        {activeTab === 'chika' && (
-          <>
-            {messages.length === 0 ? (
-              <View style={[styles.emptyStateMini, { backgroundColor: theme.surface, paddingVertical: 40 }]}>
-                <Ionicons name="chatbubbles-outline" size={32} color={theme.textSecondary} style={{ alignSelf: 'center', marginBottom: 8 }} />
-                <Text style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 13 }}>Simulan ang chika para sa gala na ito!</Text>
-              </View>
-            ) : (
-              messages.map((msg) => {
-                const isMyMessage = msg.senderId === user?.id;
-                
-                return (
-                  <View key={msg.id} style={styles.chikaRow}>
-                    {msg.type === 'system' ? (
-                      <View style={[styles.systemBubble, { backgroundColor: isDark ? '#2D333B' : '#F0E6D0' }]}>
-                        <Ionicons name="information-circle-outline" size={14} color={theme.textSecondary} />
-                        <Text style={[styles.systemText, { color: theme.textSecondary }]}>{msg.text}</Text>
-                      </View>
-                    ) : (
-                      <View style={[
-                        styles.userBubbleRow,
-                        isMyMessage && { justifyContent: 'flex-end' }
-                      ]}>
-                        {!isMyMessage && (
-                          <View style={[styles.chatAvatar, { backgroundColor: theme.tint }]}>
-                            <Text style={styles.chatAvatarText}>{msg.sender?.[0] || 'U'}</Text>
+                ) : (
+                  messages.map((msg) => {
+                    const isMyMessage = msg.senderId === user?.id;
+                    
+                    return (
+                      <View key={msg.id} style={styles.chikaRow}>
+                        {msg.type === 'system' ? (
+                          <View style={[styles.systemBubble, { backgroundColor: isDark ? '#2D333B' : '#F0E6D0' }]}>
+                            <Ionicons name="information-circle-outline" size={14} color={theme.textSecondary} />
+                            <Text style={[styles.systemText, { color: theme.textSecondary }]}>{msg.text}</Text>
+                          </View>
+                        ) : (
+                          <View style={[
+                            styles.userBubbleRow,
+                            isMyMessage && { justifyContent: 'flex-end' }
+                          ]}>
+                            {!isMyMessage && (
+                              <View style={[styles.chatAvatar, { backgroundColor: theme.tint }]}>
+                                <Text style={styles.chatAvatarText}>{msg.sender?.[0] || 'U'}</Text>
+                              </View>
+                            )}
+                            <View style={[
+                              styles.userBubble,
+                              isMyMessage 
+                                ? { backgroundColor: theme.tint, borderBottomRightRadius: 2, borderBottomLeftRadius: 12, borderWidth: 0 }
+                                : { backgroundColor: theme.surface, borderColor: theme.cardBorder, borderBottomLeftRadius: 2 }
+                            ]}>
+                              {!isMyMessage && <Text style={[styles.chatSender, { color: theme.tint }]}>{msg.sender}</Text>}
+                              <Text style={[
+                                styles.chatMessage,
+                                isMyMessage ? { color: '#FFF' } : { color: theme.text }
+                              ]}>
+                                {msg.text}
+                              </Text>
+                              <Text style={[
+                                styles.chatTime,
+                                isMyMessage ? { color: 'rgba(255,255,255,0.7)', textAlign: 'right' } : { color: theme.textSecondary }
+                              ]}>
+                                {msg.time}
+                              </Text>
+                            </View>
                           </View>
                         )}
-                        <View style={[
-                          styles.userBubble,
-                          isMyMessage 
-                            ? { backgroundColor: theme.tint, borderBottomRightRadius: 2, borderBottomLeftRadius: 12, borderWidth: 0 }
-                            : { backgroundColor: theme.surface, borderColor: theme.cardBorder, borderBottomLeftRadius: 2 }
-                        ]}>
-                          {!isMyMessage && <Text style={[styles.chatSender, { color: theme.tint }]}>{msg.sender}</Text>}
-                          <Text style={[
-                            styles.chatMessage,
-                            isMyMessage ? { color: '#FFF' } : { color: theme.text }
-                          ]}>
-                            {msg.text}
-                          </Text>
-                          <Text style={[
-                            styles.chatTime,
-                            isMyMessage ? { color: 'rgba(255,255,255,0.7)', textAlign: 'right' } : { color: theme.textSecondary }
-                          ]}>
-                            {msg.time}
+                      </View>
+                    );
+                  })
+                )}
+              </ScrollView>
+            </View>
+          </TouchableWithoutFeedback>
+
+          {/* Chat input */}
+          <View style={[styles.chatInputRow, { backgroundColor: theme.surface, borderColor: theme.cardBorder, marginBottom: insets.bottom > 0 ? insets.bottom + 4 : 12 }]}>
+            <TextInput
+              style={[styles.chatInput, { color: theme.text }]}
+              placeholder="Mag-chika ka dito..."
+              placeholderTextColor={theme.textSecondary}
+              value={chatInput}
+              onChangeText={setChatInput}
+              onSubmitEditing={handleSendMessage}
+            />
+            <TouchableOpacity style={[styles.sendButton, { backgroundColor: theme.tint }]} onPress={handleSendMessage}>
+              <Ionicons name="send" size={18} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      ) : (
+        <>
+          <ScrollView ref={scrollRef} style={styles.content} contentContainerStyle={styles.contentInner}>
+            {/* AMBAGAN TAB */}
+            {activeTab === 'ambagan' && (
+              <>
+                {/* Total cost */}
+                <View style={[styles.totalCard, { backgroundColor: isDark ? '#1C2128' : '#FFF', borderColor: theme.cardBorder }]}>
+                  <Text style={[styles.totalLabel, { color: theme.textSecondary }]}>TOTAL EVENT COST</Text>
+                  <Text style={[styles.totalAmount, { color: theme.text }]}>₱{totalCost.toLocaleString()}</Text>
+                </View>
+
+                {/* User balance */}
+                <View style={[styles.balanceCard, { backgroundColor: isDark ? '#1C2128' : '#FFF', borderColor: theme.cardBorder }]}>
+                  <Text style={[styles.balanceLabel, { color: theme.textSecondary }]}>Your Share Status (₱{perPerson.toLocaleString()} per person)</Text>
+                  <View style={styles.balanceRow}>
+                    <View style={[styles.statusDot, { backgroundColor: userBalance >= 0 ? theme.positive : theme.negative }]} />
+                    <Text style={[styles.balanceAmount, { color: userBalance >= 0 ? theme.positive : theme.negative }]}>
+                      {userBalance >= 0 ? 'YOU ARE OWED' : 'YOU OWE'} ₱{Math.abs(userBalance).toLocaleString()}
+                    </Text>
+                  </View>
+                  <TouchableOpacity style={[styles.gcashButton, { backgroundColor: theme.tint }]} onPress={handleSettleUp}>
+                    <Ionicons name="card-outline" size={16} color="#FFF" />
+                    <Text style={styles.gcashText}>Settle Up via GCash</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Resibo feed */}
+                <View style={styles.resiboHeader}>
+                  <Text style={[styles.resiboLabel, { color: theme.textSecondary }]}>LATEST RESIBO</Text>
+                  <View style={[styles.syncDot, { backgroundColor: theme.positive }]} />
+                  <Text style={[styles.syncText, { color: theme.positive }]}>Live Sync</Text>
+                </View>
+
+                {expenses.length === 0 ? (
+                  <View style={[styles.emptyStateMini, { backgroundColor: theme.surface }]}>
+                    <Text style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 13 }}>Wala pang nagagastos sa trip na ito.</Text>
+                  </View>
+                ) : (
+                  expenses.map((expense) => (
+                    <View key={expense.id} style={[styles.resiboCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
+                      <View style={styles.resiboLeft}>
+                        <View style={[styles.resiboIconWrap, { backgroundColor: isDark ? '#2D333B' : '#F5F5F5' }]}>
+                          <Ionicons name={expense.icon} size={20} color={theme.tint} />
+                        </View>
+                        <View style={styles.resiboInfo}>
+                          <View style={styles.resiboNameRow}>
+                            <Text style={[styles.resiboName, { color: theme.text }]}>{expense.name}</Text>
+                          </View>
+                          <Text style={[styles.resiboPrice, { color: theme.text }]}>₱{expense.price.toLocaleString()}</Text>
+                          <Text style={[styles.resiboPayer, { color: theme.textSecondary }]}>
+                            Paid by: {expense.payer}
                           </Text>
                         </View>
                       </View>
-                    )}
-                  </View>
-                );
-              })
+                    </View>
+                  ))
+                )}
+                <View style={styles.fabSpacer} />
+              </>
             )}
-            {/* Chat input */}
-            <View style={[styles.chatInputRow, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}>
-              <TextInput
-                style={[styles.chatInput, { color: theme.text }]}
-                placeholder="Mag-chika ka dito..."
-                placeholderTextColor={theme.textSecondary}
-                value={chatInput}
-                onChangeText={setChatInput}
-                onSubmitEditing={handleSendMessage}
-              />
-              <TouchableOpacity style={[styles.sendButton, { backgroundColor: theme.tint }]} onPress={handleSendMessage}>
-                <Ionicons name="send" size={18} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-      </ScrollView>
 
-      {/* FAB (only on board + ambagan) */}
-      {activeTab !== 'chika' && (
-        <TouchableOpacity 
-          style={[styles.fab, { backgroundColor: theme.tint }]}
-          onPress={() => {
-            if (activeTab === 'ambagan') setIsExpenseModalVisible(true);
-            else if (activeTab === 'board') setIsTodoModalVisible(true);
-          }}
-        >
-          <Ionicons name="add" size={28} color="#FFF" />
-        </TouchableOpacity>
+            {/* BOARD TAB */}
+            {activeTab === 'board' && (
+              <>
+                <Text style={[styles.boardSectionTitle, { color: theme.textSecondary }]}>
+                  TO BUY / TO BRING
+                </Text>
+                {todos.length === 0 ? (
+                  <View style={[styles.emptyStateMini, { backgroundColor: theme.surface }]}>
+                    <Text style={{ color: theme.textSecondary, textAlign: 'center', fontSize: 13 }}>Wala pang mga task ang board.</Text>
+                  </View>
+                ) : (
+                  todos.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[styles.todoCard, { backgroundColor: theme.surface, borderColor: theme.cardBorder }]}
+                      onPress={() => handleToggleTodo(item.id, item.done, item.text)}
+                    >
+                      <View style={[
+                        styles.checkbox,
+                        item.done
+                          ? { backgroundColor: theme.tint, borderColor: theme.tint }
+                          : { borderColor: theme.textSecondary }
+                      ]}>
+                        {item.done && <Ionicons name="checkmark" size={16} color="#FFF" />}
+                      </View>
+                      <View style={styles.todoContent}>
+                        <Text style={[
+                          styles.todoText, { color: theme.text },
+                          item.done && { textDecorationLine: 'line-through', opacity: 0.5 },
+                        ]}>
+                          {item.text}
+                        </Text>
+                        <Text style={[styles.todoAssignee, { color: theme.textSecondary }]}>
+                          Assigned to: {item.assignee}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                )}
+                <View style={styles.fabSpacer} />
+              </>
+            )}
+          </ScrollView>
+
+          {/* FAB (only on board + ambagan) */}
+          <TouchableOpacity 
+            style={[styles.fab, { backgroundColor: theme.tint }]}
+            onPress={() => {
+              if (activeTab === 'ambagan') setIsExpenseModalVisible(true);
+              else if (activeTab === 'board') setIsTodoModalVisible(true);
+            }}
+          >
+            <Ionicons name="add" size={28} color="#FFF" />
+          </TouchableOpacity>
+        </>
       )}
 
       {/* ── Modals ────────────────────────────────────── */}
@@ -833,6 +852,17 @@ export default function EventScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  chatContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  chatScrollView: {
+    flex: 1,
+  },
+  chatContentInner: {
+    padding: Spacing.lg,
+    paddingBottom: 20,
+  },
   header: {
     flexDirection: 'row', alignItems: 'center',
     paddingBottom: 12, paddingHorizontal: Spacing.lg,
@@ -920,7 +950,8 @@ const styles = StyleSheet.create({
   chatTime: { fontSize: 10, marginTop: 4, textAlign: 'right' },
   chatInputRow: {
     flexDirection: 'row', alignItems: 'center', borderRadius: Radius.full,
-    borderWidth: 1, paddingLeft: 16, paddingRight: 4, marginTop: Spacing.md, height: 48,
+    borderWidth: 1, paddingLeft: 16, paddingRight: 4, height: 48,
+    marginHorizontal: Spacing.lg,
   },
   chatInput: { flex: 1, fontSize: 14 },
   sendButton: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
