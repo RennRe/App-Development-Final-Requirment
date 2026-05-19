@@ -563,7 +563,7 @@ export default function EventScreen() {
         <KeyboardAvoidingView
           style={styles.chatContainer}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 96 : 0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 160 : 0}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{ flex: 1 }}>
