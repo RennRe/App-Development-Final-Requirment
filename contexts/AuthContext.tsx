@@ -20,16 +20,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
+    const syncProfile = async (currentUser: User) => {
+      try {
+        const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
+        const email = currentUser.email;
+        const photoUrl = currentUser.user_metadata?.avatar_url || '';
+        
+        const { error } = await supabase.from('profiles').upsert({
+          id: currentUser.id,
+          name,
+          email,
+          photo_url: photoUrl
+        });
+        
+        if (error) {
+          console.error("Error syncing profile:", error.message);
+        }
+      } catch (err) {
+        console.error("Exception syncing profile:", err);
+      }
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       setIsAuthLoading(false);
+      if (currentUser) {
+        syncProfile(currentUser);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       setIsAuthLoading(false);
+      if (currentUser) {
+        syncProfile(currentUser);
+      }
     });
 
     return () => subscription.unsubscribe();
