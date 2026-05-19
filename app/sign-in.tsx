@@ -16,6 +16,7 @@ import {
   Animated,
   ImageBackground,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -38,12 +39,55 @@ export default function SignInScreen() {
     ]).start(callback);
   };
 
-  const performOAuth = async (provider: 'google' | 'facebook') => {
+  const handleSessionFromUrl = async (url: string) => {
     try {
-      const redirectUrl = makeRedirectUri();
+      const hashIdx = url.indexOf('#');
+      const queryIdx = url.indexOf('?');
+      const paramString = hashIdx !== -1
+        ? url.substring(hashIdx + 1)
+        : queryIdx !== -1 ? url.substring(queryIdx + 1) : '';
+
+      const params = paramString.split('&').reduce((acc, current) => {
+        const [key, value] = current.split('=');
+        if (key && value) acc[key] = decodeURIComponent(value);
+        return acc;
+      }, {} as Record<string, string>);
+
+      if (params.access_token && params.refresh_token) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: params.access_token,
+          refresh_token: params.refresh_token,
+        });
+        if (sessionError) {
+          console.error('Session creation error:', sessionError.message);
+        } else {
+          // Successfully logged in! Close browser if open
+          WebBrowser.dismissBrowser();
+        }
+      }
+    } catch (err) {
+      console.error('Error handling session from URL:', err);
+    }
+  };
+
+  const performOAuth = async (provider: 'google' | 'facebook') => {
+    let subscription: any = null;
+    try {
+      const redirectUrl = makeRedirectUri({
+        scheme: 'appdev', // Ensure this matches the scheme in your app.json
+        preferLocalhost: true,
+      });
       console.log('=== YOUR EXACT REDIRECT URL ===');
       console.log(redirectUrl);
       console.log('===============================');
+
+      // Register deep link listener as a bulletproof fallback for Android/iOS deep linking in Expo Go
+      subscription = Linking.addEventListener('url', async (event) => {
+        if (event.url) {
+          console.log('Deep link intercepted:', event.url);
+          await handleSessionFromUrl(event.url);
+        }
+      });
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -55,6 +99,7 @@ export default function SignInScreen() {
 
       if (error) {
         console.error(`${provider} OAuth Error:`, error.message);
+        if (subscription) subscription.remove();
         return;
       }
 
@@ -62,34 +107,15 @@ export default function SignInScreen() {
         const res = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
 
         if (res.type === 'success' && res.url) {
-          // Supabase returns tokens in the URL fragment like: #access_token=...&refresh_token=...
-          const hashIdx = res.url.indexOf('#');
-          const queryIdx = res.url.indexOf('?');
-          const paramString = hashIdx !== -1 
-            ? res.url.substring(hashIdx + 1) 
-            : queryIdx !== -1 ? res.url.substring(queryIdx + 1) : '';
-          
-          const params = paramString.split('&').reduce((acc, current) => {
-            const [key, value] = current.split('=');
-            if (key && value) acc[key] = decodeURIComponent(value);
-            return acc;
-          }, {} as Record<string, string>);
-
-          if (params.access_token && params.refresh_token) {
-            const { error: sessionError } = await supabase.auth.setSession({
-              access_token: params.access_token,
-              refresh_token: params.refresh_token,
-            });
-            if (sessionError) {
-              console.error('Session creation error:', sessionError.message);
-            }
-          } else {
-             console.error('No access token found in URL:', res.url);
-          }
+          await handleSessionFromUrl(res.url);
         }
       }
     } catch (err) {
       console.error('Unexpected OAuth error:', err);
+    } finally {
+      if (subscription) {
+        subscription.remove();
+      }
     }
   };
 
